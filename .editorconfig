@@ -1,0 +1,23 @@
+# Editor configuration, see http://editorconfig.org
+root = true
+
+[*] # Применять настройки для всех файлов
+
+# Использовать пробелы вместо табуляции для отступов
+indent_style = space
+# Размер отступа - 2 пробела
+indent_size = 2
+# Использовать LF вместо CRLF в конце строки
+end_of_line = lf
+#указывает на вставку пустой строки в конце файла.
+insert_final_newline = true
+# Удалить пробелы в конце строки
+trim_trailing_whitespace = true
+# Ограничить длину строки до 80 символов
+max_line_length = 80
+
+# TypeScript
+[*.ts]
+# Разрешить использование одинарных кавычек для строк
+single_quote = true
+
