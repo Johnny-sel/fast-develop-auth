@@ -1,9 +1,7 @@
 # Auth service
 
 ## Start development
-
-1. docker-compose postgres
-2. yarn start:dev
+  docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up
 
 TODO
 1. test

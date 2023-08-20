@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  postgres:
+    env_file:
+      - .env.testing
+  app:
+    env_file:
+      - .env.testing
+

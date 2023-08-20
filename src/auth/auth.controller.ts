@@ -6,7 +6,9 @@ import {AccessTokenGuard} from './guards/at.guard';
 import {Request, Response, CookieOptions} from 'express';
 import {Post, Req, Res, UseGuards} from '@nestjs/common';
 import {Body, Controller, HttpCode, HttpStatus} from '@nestjs/common';
+import {ApiCookieAuth, ApiTags, ApiHeaders, ApiHeader} from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   private cookieOptions: CookieOptions = {httpOnly: true, secure: false};
@@ -41,6 +43,7 @@ export class AuthController {
     res.send('ok');
   }
 
+  @ApiCookieAuth()
   @UseGuards(AccessTokenGuard)
   @Post('/logout')
   @HttpCode(HttpStatus.OK)
@@ -54,6 +57,7 @@ export class AuthController {
     res.send('ok');
   }
 
+  @ApiCookieAuth()
   @UseGuards(RefreshTokenGuard)
   @Post('/refresh')
   @HttpCode(HttpStatus.OK)
