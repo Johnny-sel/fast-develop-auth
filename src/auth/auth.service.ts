@@ -120,4 +120,17 @@ export class AuthService {
 
     return tokens;
   }
+
+  async getUser(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {id: userId},
+      select: {id: true, email: true},
+    });
+
+    if (!user?.id) {
+      throw new ForbiddenException(ERRORS.ACCESS_DENIED);
+    }
+
+    return user;
+  }
 }

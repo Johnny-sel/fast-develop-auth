@@ -4,9 +4,9 @@ import {AuthService} from './auth.service';
 import {RefreshTokenGuard} from './guards/rt.guard';
 import {AccessTokenGuard} from './guards/at.guard';
 import {Request, Response, CookieOptions} from 'express';
-import {Post, Req, Res, UseGuards} from '@nestjs/common';
+import {Get, Post, Req, Res, UseGuards} from '@nestjs/common';
 import {Body, Controller, HttpCode, HttpStatus} from '@nestjs/common';
-import {ApiCookieAuth, ApiTags, ApiHeaders, ApiHeader} from '@nestjs/swagger';
+import {ApiCookieAuth, ApiTags} from '@nestjs/swagger';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -75,5 +75,15 @@ export class AuthController {
     res.cookie('refreshToken', tokens.refreshToken, this.cookieOptions);
 
     res.send('ok');
+  }
+
+  @ApiCookieAuth()
+  @UseGuards(AccessTokenGuard)
+  @Get('/user')
+  @HttpCode(HttpStatus.OK)
+  async getUser(@Req() req: Request, @Res({passthrough: true}) res: Response) {
+    const requestUser = req.user as RequestUser;
+    const user = await this.authService.getUser(requestUser.id);
+    res.send({user});
   }
 }

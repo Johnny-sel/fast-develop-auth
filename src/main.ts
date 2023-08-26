@@ -13,7 +13,7 @@ async function bootstrap() {
   app.useGlobalPipes(validationPipe);
 
   const config = new DocumentBuilder()
-    .setTitle('auth open api')
+    .setTitle('Auth API')
     .setVersion(packageJson.version)
     .build();
 
