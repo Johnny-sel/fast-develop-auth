@@ -4,7 +4,7 @@ services:
   postgres:
     image: postgres:15.3
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
     networks:
@@ -15,12 +15,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "4000:4000"
+      - "${APP_PORT}:${APP_PORT}"
     depends_on:
       - postgres
     networks:
       - app_network
-    command: ["sh", "-c", "yarn prisma generate && yarn prisma migrate deploy && yarn build && yarn start:prod"]
+    profiles:
+      - production
 
 volumes:
   postgres_data:

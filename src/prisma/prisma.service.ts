@@ -8,10 +8,18 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   constructor(config: ConfigService) {
+    const user = config.get<string>('POSTGRES_USER');
+    const password = config.get<string>('POSTGRES_PASSWORD');
+    const service = config.get<string>('POSTGRES_SERVICE');
+    const port = config.get<string>('POSTGRES_PORT');
+    const db = config.get<string>('POSTGRES_DB');
+
+    const DATABASE_URL = `postgresql://${user}:${password}@${service}:${port}/${db}?schema=public`;
+
     super({
       datasources: {
         db: {
-          url: config.get<string>('DATABASE_URL'),
+          url: DATABASE_URL,
         },
       },
     });

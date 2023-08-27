@@ -4,7 +4,4 @@ services:
   postgres:
     env_file:
       - .env.development
-  app:
-    env_file:
-      - .env.development
 
