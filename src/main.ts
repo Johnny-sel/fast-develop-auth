@@ -1,6 +1,8 @@
 import {getEnvFilePath} from './utils/getEnvFilePath';
 import {config} from 'dotenv';
-config({path: getEnvFilePath()});
+
+const envFilePath = getEnvFilePath();
+config({path: envFilePath});
 
 import {NestFactory} from '@nestjs/core';
 import {AppModule} from './app.module';
@@ -11,7 +13,12 @@ import * as cookieParser from 'cookie-parser';
 import * as packageJson from '../package.json';
 
 async function bootstrap() {
-  console.log('[INFO] App env is:', process.env.APP_ENV);
+  if (!process.env.APP_PORT) {
+    throw new Error('Define .env file please in root directory');
+  }
+
+  console.log(`[INFO] App mode: ${process.env.APP_ENV}`);
+  console.log(`[INFO] Environment variables launch from: ${envFilePath}.`);
 
   const app = await NestFactory.create(AppModule);
   const validationPipe = new ValidationPipe();
@@ -28,8 +35,8 @@ async function bootstrap() {
   SwaggerModule.setup('swagger', app, document);
 
   app
-    .listen(process.env.APP_PORT!)
-    .then(() => console.log('[INFO] Auth service is launched'));
+    .listen(process.env.APP_PORT)
+    .then(() => console.log('[INFO] Auth application is launched'));
 }
 
 bootstrap();

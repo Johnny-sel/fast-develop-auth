@@ -7,11 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TwoFactorTypeType {
+  totp
+}
+
 model User {
-  id               String   @id @default(cuid())
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @default(now())
-  email            String   @unique
-  hashPassword     String
-  hashRefreshToken String?
+  id                String             @id @default(cuid())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @default(now())
+  email             String             @unique
+  hashPassword      String
+  hashRefreshToken  String?
+  twoFactorSecret   String?
+  twoFactorIsEnable Boolean            @default(false)
+  twoFactorType     TwoFactorTypeType?
 }

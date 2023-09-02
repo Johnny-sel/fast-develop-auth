@@ -1,5 +1,5 @@
-import {Tokens, RequestUser} from './auth.types';
-import {AuthDto} from './auth.dto';
+import {Tokens, DataFromCookie} from './auth.interface';
+import {SigninDto, SignupDto} from './auth.dto';
 import {AuthService} from './auth.service';
 import {RefreshTokenGuard} from './guards/rt.guard';
 import {AccessTokenGuard} from './guards/at.guard';
@@ -18,7 +18,7 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   async signupLocal(
     @Res({passthrough: true}) res: Response,
-    @Body() dto: AuthDto
+    @Body() dto: SignupDto
   ): Promise<Tokens> {
     const tokens = await this.authService.signupLocal(dto);
 
@@ -33,7 +33,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async signinLocal(
     @Res({passthrough: true}) res: Response,
-    @Body() dto: AuthDto
+    @Body() dto: SigninDto
   ) {
     const tokens = await this.authService.signinLocal(dto);
 
@@ -48,8 +48,8 @@ export class AuthController {
   @Post('/logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Req() req: Request, @Res({passthrough: true}) res: Response) {
-    const user = req.user as RequestUser;
-    await this.authService.logout(user.id);
+    const dataFromCookie = req.user as DataFromCookie;
+    await this.authService.logout(dataFromCookie.id);
 
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
@@ -65,10 +65,10 @@ export class AuthController {
     @Req() req: Request,
     @Res({passthrough: true}) res: Response
   ) {
-    const user = req.user as RequestUser;
+    const dataFromCookie = req.user as DataFromCookie;
     const tokens = await this.authService.refreshTokens(
-      user.id,
-      user.refreshToken
+      dataFromCookie.id,
+      dataFromCookie.refreshToken
     );
 
     res.cookie('accessToken', tokens.accessToken, this.cookieOptions);
@@ -82,8 +82,8 @@ export class AuthController {
   @Get('/user')
   @HttpCode(HttpStatus.OK)
   async getUser(@Req() req: Request, @Res({passthrough: true}) res: Response) {
-    const requestUser = req.user as RequestUser;
-    const user = await this.authService.getUser(requestUser.id);
-    res.send({user});
+    const dataFromCookie = req.user as DataFromCookie;
+    const userFromDatabase = await this.authService.getUser(dataFromCookie.id);
+    res.send({...userFromDatabase});
   }
 }

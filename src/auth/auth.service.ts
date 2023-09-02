@@ -3,7 +3,7 @@ import {createId} from '@paralleldrive/cuid2';
 import {ForbiddenException, Injectable} from '@nestjs/common';
 import {PrismaService} from 'src/prisma/prisma.service';
 import {AuthDto} from './auth.dto';
-import {DecryptedData, Tokens} from './auth.types';
+import {DecryptedDataToJwt, Tokens, TwoFactorTypes} from './auth.interface';
 import {JwtService} from '@nestjs/jwt';
 import {ConfigService} from '@nestjs/config';
 import {ERRORS} from './auth.errors';
@@ -16,9 +16,7 @@ export class AuthService {
     private config: ConfigService
   ) {}
 
-  private async getJwTokens({userId, email}: DecryptedData) {
-    console.log(this.config.get<string>('ACCESS_TOKEN_EXPIRES_IN'));
-
+  private async getJwTokens({userId, email}: DecryptedDataToJwt) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         {sub: userId, email},

@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "TwoFactorTypeType" AS ENUM ('totp');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -6,6 +9,9 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "hashPassword" TEXT NOT NULL,
     "hashRefreshToken" TEXT,
+    "twoFactorSecret" TEXT,
+    "twoFactorIsEnable" BOOLEAN NOT NULL DEFAULT false,
+    "twoFactorType" "TwoFactorTypeType",
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
