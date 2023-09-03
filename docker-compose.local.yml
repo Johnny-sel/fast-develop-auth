@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  postgres:
+    env_file:
+      - .env.local
+    volumes:
+      - ./pg_data_local:/var/lib/postgresql/data
+
+volumes:
+  pg_data_local:

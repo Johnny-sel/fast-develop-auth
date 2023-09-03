@@ -9,8 +9,10 @@
     "node": "18.17.1"
   },
   "scripts": {
-    "start:dev": "cross-env NODE_ENV=development nest start --watch",
+    "start:local": "cross-env NODE_ENV=local nest start --watch",
+    "start:dev": "cross-env NODE_ENV=development node dist/src/main",
     "start:prod": "cross-env NODE_ENV=production node dist/src/main",
+    "start:stage": "cross-env NODE_ENV=staging node dist/src/main",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -20,8 +22,7 @@
     "test:watch": "cross-env NODE_ENV=testing jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "cross-env NODE_ENV=testing node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "cross-env NODE_ENV=testing jest --config ./test/jest-e2e.json",
-    "prismaDev": "dotenv -e .env.development -- prisma migrate dev"
+    "test:e2e": "cross-env NODE_ENV=testing jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

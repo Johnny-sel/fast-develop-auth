@@ -5,6 +5,11 @@ coverage
 node_modules/
 .husky
 
+pg_data
+pg_data_dev
+pg_data_test
+pg_data_prod
+
 .idea
 .vscode
 .DS_Store

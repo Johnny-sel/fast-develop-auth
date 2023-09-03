@@ -4,9 +4,12 @@ services:
   postgres:
     env_file:
       - .env.production
+    volumes:
+      - ./pg_data_prod:/var/lib/postgresql/data
   app:
     env_file:
       - .env.production
     command: ["/bin/bash", "-c", "/app/wait-for-it.sh --timeout=30 --strict postgres:$$POSTGRES_PORT && sleep 10 && yarn prisma generate && yarn prisma migrate deploy && yarn build && yarn start:prod"]
 
-
+volumes:
+  pg_data_prod:

@@ -1,7 +1,7 @@
 import {$Enums} from '@prisma/client';
 import {createId} from '@paralleldrive/cuid2';
 import {ForbiddenException, Injectable} from '@nestjs/common';
-import {PrismaService} from 'src/prisma/prisma.service';
+import {PrismaService} from './../../src/prisma/prisma.service';
 import {AuthDto, ConfirmTotpDto, SigninDto} from './auth.dto';
 import {DecryptedDataToJwt, Tokens} from './auth.interface';
 import {JwtService} from '@nestjs/jwt';
@@ -137,7 +137,7 @@ export class AuthService {
   async getUser(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: {id: userId},
-      select: {id: true, email: true},
+      select: {id: true, email: true, permissions: true},
     });
 
     if (!user?.id) {

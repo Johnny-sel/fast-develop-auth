@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  postgres:
+    env_file:
+      - .env.staging
+    volumes:
+      - ./pg_data_stage:/var/lib/postgresql/data
+  app:
+    env_file:
+      - .env.staging
+    command: ["/bin/bash", "-c", "/app/wait-for-it.sh --timeout=30 --strict postgres:$$POSTGRES_PORT && sleep 10 && yarn prisma generate && yarn prisma migrate deploy && yarn build && yarn start:stage"]
+
+volumes:
+  pg_data_stage:

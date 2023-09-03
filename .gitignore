@@ -2,7 +2,10 @@
 /dist
 /node_modules
 /build
-/postgres_data
+/pg_data
+/pg_data_dev
+/pg_data_test
+/pg_data_prod
 
 .env
 .env.production

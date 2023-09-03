@@ -6,7 +6,7 @@ services:
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - ./pg_data:/var/lib/postgresql/data
     networks:
       - app_network
 
@@ -22,9 +22,11 @@ services:
       - app_network
     profiles:
       - production
+      - staging
+      - development
 
 volumes:
-  postgres_data:
+  pg_data:
 
 networks:
   app_network:
