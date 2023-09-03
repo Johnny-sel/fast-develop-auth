@@ -1,5 +1,8 @@
 -- CreateEnum
-CREATE TYPE "TwoFactorTypeEnum" AS ENUM ('totp');
+CREATE TYPE "TwoFactorTypesEnum" AS ENUM ('totp');
+
+-- CreateEnum
+CREATE TYPE "PermissionsEnum" AS ENUM ('super', 'admin', 'support', 'manager', 'customer', 'moderator');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -11,7 +14,8 @@ CREATE TABLE "User" (
     "hashRefreshToken" TEXT,
     "twoFactorSecret" TEXT,
     "twoFactorIsEnable" BOOLEAN NOT NULL DEFAULT false,
-    "twoFactorType" "TwoFactorTypeEnum",
+    "twoFactorType" "TwoFactorTypesEnum",
+    "permissions" "PermissionsEnum"[] DEFAULT ARRAY['customer']::"PermissionsEnum"[],
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );

@@ -1,3 +1,5 @@
+import {$Enums} from '@prisma/client';
+
 export interface Tokens {
   accessToken: string;
   refreshToken: string;
@@ -11,6 +13,7 @@ export interface JwtPayload {
 export interface DecryptedDataToJwt {
   userId: string;
   email: string;
+  permissions: $Enums.PermissionsEnum[];
 }
 
 export interface DataFromCookie {
@@ -20,8 +23,4 @@ export interface DataFromCookie {
   exp: number;
   refreshToken: string;
   accessToken?: string;
-}
-
-export enum TwoFactorTypes {
-  TOTP = 'totp',
 }

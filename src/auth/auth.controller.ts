@@ -58,7 +58,7 @@ export class AuthController {
 
   @ApiCookieAuth()
   @UseGuards(AccessTokenGuard)
-  @Post('/logout')
+  @Get('/logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Req() req: Request, @Res({passthrough: true}) res: Response) {
     const dataFromCookie = req.user as DataFromCookie;
@@ -72,7 +72,7 @@ export class AuthController {
 
   @ApiCookieAuth()
   @UseGuards(RefreshTokenGuard)
-  @Post('/refresh')
+  @Get('/refresh')
   @HttpCode(HttpStatus.OK)
   async refreshTokens(
     @Req() req: Request,

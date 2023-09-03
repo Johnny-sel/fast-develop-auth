@@ -1,3 +1,4 @@
+import {$Enums} from '@prisma/client';
 import {createId} from '@paralleldrive/cuid2';
 import {ForbiddenException, Injectable} from '@nestjs/common';
 import {PrismaService} from 'src/prisma/prisma.service';
@@ -19,17 +20,17 @@ export class AuthService {
     private config: ConfigService
   ) {}
 
-  private async getJwTokens({userId, email}: DecryptedDataToJwt) {
+  private async getJwTokens({userId, email, permissions}: DecryptedDataToJwt) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        {sub: userId, email},
+        {sub: userId, email, permissions},
         {
           secret: this.config.get<string>('ACCESS_TOKEN_SECRET'),
           expiresIn: this.config.get<string>('ACCESS_TOKEN_EXPIRES_IN'),
         }
       ),
       this.jwtService.signAsync(
-        {sub: userId, email},
+        {sub: userId, email, permissions},
         {
           secret: this.config.get<string>('REFRESH_TOKEN_SECRET'),
           expiresIn: this.config.get<string>('REFRESH_TOKEN_EXPIRES_IN'),
@@ -52,7 +53,12 @@ export class AuthService {
   async signupLocal(dto: AuthDto): Promise<Tokens> {
     const userId = createId();
     const hashPassword = await argon.hash(dto.password);
-    const tokens = await this.getJwTokens({email: dto.email, userId});
+    const tokens = await this.getJwTokens({
+      email: dto.email,
+      userId,
+      permissions: [$Enums.PermissionsEnum.customer],
+    });
+
     const hashRefreshToken = await argon.hash(tokens.refreshToken);
 
     await this.prisma.user.create({
@@ -85,6 +91,7 @@ export class AuthService {
     const tokens = await this.getJwTokens({
       userId: user.id,
       email: user.email,
+      permissions: user.permissions,
     });
 
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
@@ -119,6 +126,7 @@ export class AuthService {
     const tokens = await this.getJwTokens({
       userId: user.id,
       email: user.email,
+      permissions: user.permissions,
     });
 
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
@@ -140,7 +148,10 @@ export class AuthService {
   }
 
   async generateTotp(userId: string) {
-    const secret = speakeasy.generateSecret({length: 20});
+    const secret = speakeasy.generateSecret({
+      length: 20,
+      name: this.config.get<string>('APP_NAME'),
+    });
 
     if (!secret?.otpauth_url) {
       throw new ForbiddenException(ERRORS.INVALID_GENERATE_TOTP);
@@ -182,7 +193,12 @@ export class AuthService {
       return null;
     }
 
-    const tokens = await this.getJwTokens({userId: user.id, email: user.email});
+    const tokens = await this.getJwTokens({
+      userId: user.id,
+      email: user.email,
+      permissions: user.permissions,
+    });
+
     const hashRefreshToken = await argon.hash(tokens.refreshToken);
 
     await this.prisma.user.update({
