@@ -1,12 +1,15 @@
-import * as argon from 'argon2';
 import {createId} from '@paralleldrive/cuid2';
 import {ForbiddenException, Injectable} from '@nestjs/common';
 import {PrismaService} from 'src/prisma/prisma.service';
-import {AuthDto} from './auth.dto';
-import {DecryptedDataToJwt, Tokens, TwoFactorTypes} from './auth.interface';
+import {AuthDto, ConfirmTotpDto, SigninDto} from './auth.dto';
+import {DecryptedDataToJwt, Tokens} from './auth.interface';
 import {JwtService} from '@nestjs/jwt';
 import {ConfigService} from '@nestjs/config';
 import {ERRORS} from './auth.errors';
+
+import * as argon from 'argon2';
+import * as speakeasy from 'speakeasy';
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class AuthService {
@@ -59,7 +62,7 @@ export class AuthService {
     return tokens;
   }
 
-  async signinLocal(dto: AuthDto): Promise<Tokens> {
+  async signinLocal(dto: SigninDto) {
     const user = await this.prisma.user.findUnique({where: {email: dto.email}});
 
     if (!user) {
@@ -75,6 +78,10 @@ export class AuthService {
       throw new ForbiddenException(ERRORS.ACCESS_DENIED);
     }
 
+    if (user.twoFactorIsEnable) {
+      return {isTwoFactorEnable: true, tokens: null};
+    }
+
     const tokens = await this.getJwTokens({
       userId: user.id,
       email: user.email,
@@ -82,7 +89,7 @@ export class AuthService {
 
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
 
-    return tokens;
+    return {isTwoFactorEnable: false, tokens};
   }
 
   async logout(userId: string) {
@@ -130,5 +137,59 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async generateTotp(userId: string) {
+    const secret = speakeasy.generateSecret({length: 20});
+
+    if (!secret?.otpauth_url) {
+      throw new ForbiddenException(ERRORS.INVALID_GENERATE_TOTP);
+    }
+
+    const qrCodeImage = await QRCode.toDataURL(secret.otpauth_url);
+
+    await this.prisma.user.update({
+      where: {id: userId},
+      data: {twoFactorSecret: secret.ascii, twoFactorIsEnable: false},
+    });
+
+    return {qrCodeImage, secret2FA: secret.base32};
+  }
+
+  async confirmTotp(dto: ConfirmTotpDto) {
+    const user = await this.prisma.user.findUnique({where: {email: dto.email}});
+
+    if (!user?.twoFactorSecret) {
+      throw new ForbiddenException(ERRORS.INVALID_CONFIRM_TOTP);
+    }
+
+    const isPasswordMatches = await argon.verify(
+      user.hashPassword,
+      dto.password
+    );
+
+    if (!isPasswordMatches) {
+      throw new ForbiddenException(ERRORS.ACCESS_DENIED);
+    }
+
+    const isTOTPCodeVerified = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: 'ascii',
+      token: dto.TOTPcode,
+    });
+
+    if (!isTOTPCodeVerified) {
+      return null;
+    }
+
+    const tokens = await this.getJwTokens({userId: user.id, email: user.email});
+    const hashRefreshToken = await argon.hash(tokens.refreshToken);
+
+    await this.prisma.user.update({
+      where: {id: user.id},
+      data: {twoFactorIsEnable: true, hashRefreshToken},
+    });
+
+    return tokens;
   }
 }

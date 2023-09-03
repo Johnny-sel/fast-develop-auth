@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum TwoFactorTypeType {
+enum TwoFactorTypeEnum {
   totp
 }
 
@@ -20,5 +20,5 @@ model User {
   hashRefreshToken  String?
   twoFactorSecret   String?
   twoFactorIsEnable Boolean            @default(false)
-  twoFactorType     TwoFactorTypeType?
+  twoFactorType     TwoFactorTypeEnum?
 }

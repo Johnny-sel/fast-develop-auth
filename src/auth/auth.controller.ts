@@ -1,10 +1,11 @@
-import {Tokens, DataFromCookie} from './auth.interface';
-import {SigninDto, SignupDto} from './auth.dto';
+import {DataFromCookie} from './auth.interface';
+import {ConfirmTotpDto, SigninDto, SignupDto} from './auth.dto';
 import {AuthService} from './auth.service';
 import {RefreshTokenGuard} from './guards/rt.guard';
 import {AccessTokenGuard} from './guards/at.guard';
 import {Request, Response, CookieOptions} from 'express';
-import {Get, Post, Req, Res, UseGuards} from '@nestjs/common';
+import {UseGuards} from '@nestjs/common';
+import {Get, Post, Req, Res} from '@nestjs/common';
 import {Body, Controller, HttpCode, HttpStatus} from '@nestjs/common';
 import {ApiCookieAuth, ApiTags} from '@nestjs/swagger';
 
@@ -19,14 +20,13 @@ export class AuthController {
   async signupLocal(
     @Res({passthrough: true}) res: Response,
     @Body() dto: SignupDto
-  ): Promise<Tokens> {
+  ) {
     const tokens = await this.authService.signupLocal(dto);
 
-    res.cookie('accessToken', tokens.accessToken, this.cookieOptions);
-    res.cookie('refreshToken', tokens.refreshToken, this.cookieOptions);
-
-    res.send('ok');
-    return tokens;
+    res
+      .cookie('accessToken', tokens.accessToken, this.cookieOptions)
+      .cookie('refreshToken', tokens.refreshToken, this.cookieOptions)
+      .send('ok');
   }
 
   @Post('/local/signin')
@@ -35,12 +35,25 @@ export class AuthController {
     @Res({passthrough: true}) res: Response,
     @Body() dto: SigninDto
   ) {
-    const tokens = await this.authService.signinLocal(dto);
+    const {tokens, isTwoFactorEnable} = await this.authService.signinLocal(dto);
 
-    res.cookie('accessToken', tokens.accessToken, this.cookieOptions);
-    res.cookie('refreshToken', tokens.refreshToken, this.cookieOptions);
+    if (isTwoFactorEnable) {
+      res
+        .clearCookie('accessToken')
+        .clearCookie('refreshToken')
+        .send({isTwoFactorEnable}); // move client to input TOTP code
+      return;
+    }
 
-    res.send('ok');
+    if (!tokens) {
+      res.send('fail');
+      return;
+    }
+
+    res
+      .cookie('accessToken', tokens.accessToken, this.cookieOptions)
+      .cookie('refreshToken', tokens.refreshToken, this.cookieOptions)
+      .send('ok');
   }
 
   @ApiCookieAuth()
@@ -71,10 +84,10 @@ export class AuthController {
       dataFromCookie.refreshToken
     );
 
-    res.cookie('accessToken', tokens.accessToken, this.cookieOptions);
-    res.cookie('refreshToken', tokens.refreshToken, this.cookieOptions);
-
-    res.send('ok');
+    res
+      .cookie('accessToken', tokens.accessToken, this.cookieOptions)
+      .cookie('refreshToken', tokens.refreshToken, this.cookieOptions)
+      .send('ok');
   }
 
   @ApiCookieAuth()
@@ -85,5 +98,37 @@ export class AuthController {
     const dataFromCookie = req.user as DataFromCookie;
     const userFromDatabase = await this.authService.getUser(dataFromCookie.id);
     res.send({...userFromDatabase});
+  }
+
+  @ApiCookieAuth()
+  @UseGuards(AccessTokenGuard)
+  @Get('2fa/generate-totp')
+  @HttpCode(HttpStatus.OK)
+  async generateTotp(
+    @Req() req: Request,
+    @Res({passthrough: true}) res: Response
+  ) {
+    const dataFromCookie = req.user as DataFromCookie;
+    const data = await this.authService.generateTotp(dataFromCookie.id);
+    res.send({qrCodeImage: data.qrCodeImage, secret2FA: data.secret2FA});
+  }
+
+  @Post('2fa/confirm-totp')
+  @HttpCode(HttpStatus.OK)
+  async confirmTotp(
+    @Res({passthrough: true}) res: Response,
+    @Body() dto: ConfirmTotpDto
+  ) {
+    const tokens = await this.authService.confirmTotp(dto);
+
+    if (!tokens) {
+      res.status(401).send('fail');
+      return;
+    }
+
+    res
+      .cookie('accessToken', tokens.accessToken, this.cookieOptions)
+      .cookie('refreshToken', tokens.refreshToken, this.cookieOptions)
+      .send('ok');
   }
 }
