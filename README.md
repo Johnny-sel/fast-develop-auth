@@ -8,14 +8,14 @@
     install postgres database in local machine with settings in .env.local
     dotenv -e .env.local -- npx prisma generate
     dotenv -e .env.local -- npx prisma migrate dev
-    yarn start:dev
+    yarn start:local
     go to http://localhost:4000/swagger
 OR
 ### --- Start local development via docker database
     docker-compose --env-file .env.local -f docker-compose.base.yml -f docker-compose.local.yml up --build
     dotenv -e .env.local -- npx prisma generate
     dotenv -e .env.local -- npx prisma migrate dev
-    yarn start:dev
+    yarn start:local
     go to http://localhost:4000/swagger
 
 ## Start testing

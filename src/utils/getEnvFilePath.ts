@@ -10,6 +10,8 @@ export function getEnvFilePath() {
       return '.env.staging';
     case ENV.TESTING:
       return '.env.testing';
+    case ENV.LOCAL:
+      return '.env.local';
     default:
       return '.env.development';
   }
