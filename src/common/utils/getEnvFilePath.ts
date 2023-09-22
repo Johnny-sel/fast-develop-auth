@@ -1,4 +1,4 @@
-import {ENV} from '../common/enums/env.enum';
+import {ENV} from '../enums/env.enum';
 
 export function getEnvFilePath() {
   switch (process.env.NODE_ENV) {

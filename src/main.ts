@@ -1,4 +1,4 @@
-import {getEnvFilePath} from './utils/getEnvFilePath';
+import {getEnvFilePath} from './common/utils/getEnvFilePath';
 import {config} from 'dotenv';
 
 const envFilePath = getEnvFilePath();
